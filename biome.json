@@ -1,0 +1,15 @@
+{
+	"files": {
+		"includes": [
+			"src/**",
+			"*.{js,ts,json,html}",
+			"!package.json",
+			"!package-lock.json"
+		]
+	},
+	"html": {
+		"formatter": {
+			"enabled": true
+		}
+	}
+}
