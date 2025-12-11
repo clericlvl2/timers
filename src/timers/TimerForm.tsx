@@ -1,96 +1,58 @@
+import { Button, Card, Form, InputNumber } from "antd";
 import { useUnit } from "effector-react";
-import type { ChangeEvent, FormEvent } from "react";
 import { timerFormModel } from "./model/form";
-import { TimeInput } from "./TimeInput";
 
-const HOUR_CONFIG = {
-	MAX: 23,
-	MIN: 0,
-};
-
-const MIN_CONFIG = {
-	MAX: 59,
-	MIN: 0,
-};
-
-const SEC_CONFIG = {
-	MAX: 59,
-	MIN: 0,
-};
+const fieldsConfig = [
+	{
+		key: "hh",
+		placeholder: "Hours...",
+		max: 23,
+		min: 0,
+	},
+	{
+		key: "mm",
+		placeholder: "Minutes...",
+		max: 59,
+		min: 0,
+	},
+	{
+		key: "ss",
+		placeholder: "Seconds...",
+		max: 59,
+		min: 0,
+	},
+] as const;
 
 export const TimerForm = () => {
-	const [
-		onSubmit,
-		formData,
-		formError,
-		onHoursChanged,
-		onMinutesChanged,
-		onSecondsChanged,
-	] = useUnit([
-		timerFormModel.formSubmitted,
-		timerFormModel.$form,
-		timerFormModel.$formError,
-		timerFormModel.hhChanged,
-		timerFormModel.mmChanged,
-		timerFormModel.ssChanged,
+	const [form, error, onSubmit, onChange] = useUnit([
+		timerFormModel.form,
+		timerFormModel.formError,
+		timerFormModel.submit,
+		timerFormModel.change,
 	]);
 
-	const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-		onSubmit();
-	};
-
-	const createOnChangeHandler = (cb: (val: string) => void) => {
-		return (e: ChangeEvent<HTMLInputElement>) => cb(e.target.value);
-	};
-
 	return (
-		<form
-			style={{
-				display: "grid",
-				gridTemplateRows: "1fr 1fr",
-				gridTemplateColumns: "repeat(4, min-content)",
-				alignItems: "center",
-				gap: "1rem",
-				justifyContent: "center",
-			}}
-			onSubmit={handleSubmit}
-		>
-			<TimeInput
-				value={formData.hh}
-				onChange={createOnChangeHandler(onHoursChanged)}
-				name="hh"
-				max={HOUR_CONFIG.MAX}
-				min={HOUR_CONFIG.MIN}
-			/>
-			<TimeInput
-				value={formData.mm}
-				onChange={createOnChangeHandler(onMinutesChanged)}
-				name="mm"
-				max={MIN_CONFIG.MAX}
-				min={MIN_CONFIG.MIN}
-			/>
-			<TimeInput
-				value={formData.ss}
-				onChange={createOnChangeHandler(onSecondsChanged)}
-				name="ss"
-				max={SEC_CONFIG.MAX}
-				min={SEC_CONFIG.MIN}
-			/>
-
-			<button type="submit" style={{ padding: "2px 8px" }}>
-				Run
-			</button>
-			<div
-				style={{
-					gridColumn: "1/4",
-					gridRow: "2/3",
-					height: 24,
-					color: "brown",
-				}}
+		<Card className="w-full">
+			<Form
+				className="flex flex-col gap-2 items-stretch sm:items-baseline sm:flex-row sm:gap-4"
+				onFinish={onSubmit}
 			>
-				{formError}
-			</div>
-		</form>
+				{fieldsConfig.map((f) => (
+					<InputNumber
+						style={{ width: "100%" }}
+						key={f.key}
+						value={form[f.key]}
+						min={f.min}
+						max={f.max}
+						placeholder={f.placeholder}
+						status={error ? "error" : ""}
+						onChange={(value) => onChange({ key: f.key, value })}
+					/>
+				))}
+				<Button type="primary" htmlType="submit" className="w-full">
+					Run
+				</Button>
+			</Form>
+		</Card>
 	);
 };

@@ -1,6 +1,1 @@
-// todo replace
-
-export const createIdGenerator = () => {
-	let counter = 0;
-	return () => ++counter;
-};
+export const createUUID = () => Math.random().toString(36).slice(2);

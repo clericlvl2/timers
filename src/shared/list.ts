@@ -1,6 +1,4 @@
-interface WithId {
-	id: number;
-}
+import type { WithId } from "./types";
 
 export const updateListById = <Item extends WithId>(
 	list: Item[],

@@ -1,50 +1,45 @@
 import { createEvent, createStore, sample } from "effector";
-import { type TimerForm, timerModel } from "./timer";
+import { persist } from "effector-storage/local";
+import { StorageKey } from "./storage";
+import { timersModel } from "./timer";
 
-// todo formChanged
+type FormValue = number | null;
 
-const hhChanged = createEvent<string>();
-const mmChanged = createEvent<string>();
-const ssChanged = createEvent<string>();
+export interface TimerForm {
+	hh: FormValue;
+	mm: FormValue;
+	ss: FormValue;
+}
 const formSubmitted = createEvent();
 
 const $form = createStore<TimerForm>({
-	hh: "",
-	mm: "",
-	ss: "",
+	hh: null,
+	mm: null,
+	ss: null,
 });
-
 const $formError = createStore<string | null>(null);
 
+interface FormChangedPayload {
+	key: "hh" | "mm" | "ss";
+	value: FormValue;
+}
+
+const formChanged = createEvent<FormChangedPayload>();
+
 sample({
-	clock: hhChanged,
+	clock: formChanged,
 	source: $form,
-	fn: (form, hh) => ({ ...form, hh }),
+	fn: (form, { key, value }) => ({ ...form, [key]: value }),
 	target: $form,
 });
 
-sample({
-	clock: mmChanged,
-	source: $form,
-	fn: (form, mm) => ({ ...form, mm }),
-	target: $form,
-});
-
-sample({
-	clock: ssChanged,
-	source: $form,
-	fn: (form, ss) => ({ ...form, ss }),
-	target: $form,
-});
-
-const isFormValid = (formData: TimerForm) =>
-	Boolean(Number(formData.hh) || Number(formData.mm) || Number(formData.ss));
+const isFormValid = ({ hh, mm, ss }: TimerForm) => Boolean(hh || mm || ss);
 
 sample({
 	clock: formSubmitted,
 	source: $form,
 	filter: isFormValid,
-	target: timerModel.timerAdded,
+	target: timersModel.add,
 });
 
 sample({
@@ -56,22 +51,25 @@ sample({
 });
 
 sample({
-	clock: timerModel.timerAdded,
+	clock: timersModel.add,
 	fn: () => null,
 	target: $formError,
 });
 
 sample({
-	clock: timerModel.timerAdded,
-	fn: () => ({ hh: "", mm: "", ss: "" }),
+	clock: timersModel.add,
+	fn: () => ({ hh: null, mm: null, ss: null }),
 	target: $form,
 });
 
+persist({
+	store: $form,
+	key: StorageKey.FormData,
+});
+
 export const timerFormModel = {
-	$form,
-	$formError,
-	formSubmitted,
-	hhChanged,
-	mmChanged,
-	ssChanged,
+	form: $form,
+	formError: $formError,
+	submit: formSubmitted,
+	change: formChanged,
 };

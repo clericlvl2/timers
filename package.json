@@ -1,7 +1,6 @@
 {
-  "name": "react-ts-vite",
-  "private": true,
-  "version": "0.0.0",
+  "name": "timers",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,12 +11,17 @@
     "check": "biome check"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.1.0",
+    "@tailwindcss/vite": "^4.1.17",
+    "antd": "^6.1.0",
     "clsx": "^2.1.1",
     "effector": "^23.4.4",
     "effector-react": "^23.3.0",
+    "effector-storage": "^7.1.0",
     "patronum": "^2.3.0",
     "react": "^19.2.1",
-    "react-dom": "^19.2.1"
+    "react-dom": "^19.2.1",
+    "tailwindcss": "^4.1.17"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.8",

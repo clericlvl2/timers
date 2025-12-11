@@ -1,21 +1,28 @@
-import { useList } from "effector-react";
-import { timerModel } from "./model/timer";
-import { TimerRender } from "./TimersListItem";
+import { Typography } from "antd";
+import { useUnit } from "effector-react/compat";
+import { timersModel } from "./model/timer";
+import { TimerCard } from "./TimersListItem";
 
 export const TimersList = () => {
-	const list = useList(timerModel.$timers, TimerRender);
+	const timers = useUnit(timersModel.list);
 
 	return (
-		<ul
-			style={{
-				margin: 0,
-				padding: 0,
-				display: "flex",
-				flexDirection: "column",
-				gap: 4,
-			}}
-		>
-			{list}
-		</ul>
+		<div className="w-full flex flex-col gap-4 text-center">
+			{!timers.length && (
+				<Typography.Text type="secondary">No timers yet</Typography.Text>
+			)}
+			{timers.map((timer, index) => (
+				<TimerCard key={timer.id ?? index} timer={timer} index={index} />
+			))}
+		</div>
 	);
 };
+
+/**
+ * 1. # цифру в начало
+ * 2. total под тикер
+ * 3. тикер больше
+ * 4. кнопки в конец
+ * 5. слить плей поз
+ * 6. кроестик вместо remove
+ */

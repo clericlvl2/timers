@@ -1,13 +1,11 @@
+import { Typography } from "antd";
 import { TimersView } from "../timers";
-
-// todo tailwind or ant design
 
 export const App = () => {
 	return (
-		<div
-			style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
-		>
-			<h1>Create Timers!</h1>
+		<div className="min-h-screen flex flex-col items-center p-8 gap-6">
+			<Typography.Title level={2}>Create Timers!</Typography.Title>
+
 			<TimersView />
 		</div>
 	);
