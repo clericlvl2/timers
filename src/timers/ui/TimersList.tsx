@@ -1,6 +1,6 @@
 import { Typography } from "antd";
 import { useUnit } from "effector-react/compat";
-import { timersModel } from "./model/timer";
+import { timersModel } from "../model/timer";
 import { TimerCard } from "./TimersListItem";
 
 export const TimersList = () => {
@@ -12,7 +12,7 @@ export const TimersList = () => {
 				<Typography.Text type="secondary">No timers yet</Typography.Text>
 			)}
 			{timers.map((timer, index) => (
-				<TimerCard key={timer.id ?? index} timer={timer} index={index} />
+				<TimerCard key={timer.id ?? index} {...timer} />
 			))}
 		</div>
 	);

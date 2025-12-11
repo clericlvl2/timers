@@ -1,9 +1,9 @@
-import { TimerForm } from "./TimerForm";
-import { TimersList } from "./TimersList";
+import { TimerForm } from "./ui/TimerForm";
+import { TimersList } from "./ui/TimersList";
 
 export const TimersView = () => {
 	return (
-		<div className="flex flex-col items-center gap-4 min-w-xs">
+		<div className="w-full flex flex-col items-center gap-4">
 			<TimerForm />
 			<TimersList />
 		</div>

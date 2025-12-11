@@ -33,6 +33,7 @@ const timerAdded = createEvent<TimerForm>();
 const timerStarted = createEvent<ItemId>();
 const timerPaused = createEvent<ItemId>();
 const timerRemoved = createEvent<ItemId>();
+const timerResumed = createEvent<ItemId>();
 
 sample({
 	clock: timerAdded,
@@ -89,6 +90,18 @@ sample({
 	fn: (list, id) =>
 		updateListById(list, id, {
 			status: TimerStatus.Paused,
+		}),
+	target: $timers,
+});
+
+sample({
+	clock: timerResumed,
+	source: $timers,
+	fn: (list, id) =>
+		updateListById(list, id, {
+			status: TimerStatus.Running,
+			elapsed: 0,
+			timestamp: Date.now(),
 		}),
 	target: $timers,
 });
@@ -156,6 +169,7 @@ persist({
 export const timersModel = {
 	list: $timers,
 	remove: timerRemoved,
+	resume: timerResumed,
 	add: timerAdded,
 	start: timerStarted,
 	pause: timerPaused,

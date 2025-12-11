@@ -1,6 +1,6 @@
 import { Button, Card, Form, InputNumber } from "antd";
 import { useUnit } from "effector-react";
-import { timerFormModel } from "./model/form";
+import { timerFormModel } from "../model/form";
 
 const fieldsConfig = [
 	{
