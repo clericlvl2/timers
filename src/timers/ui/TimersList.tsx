@@ -4,7 +4,7 @@ import { timersModel } from "../model/timer";
 import { TimerCard } from "./TimersListItem";
 
 export const TimersList = () => {
-	const timers = useUnit(timersModel.list);
+	const timers = useUnit(timersModel.$list);
 
 	return (
 		<div className="w-full flex flex-col gap-4 text-center">

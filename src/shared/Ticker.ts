@@ -1,25 +1,50 @@
-export class Ticker {
-	private tickerId: number | null = null;
-	private cancelled = false;
+enum TickerState {
+	Idle = "idle",
+	Running = "running",
+	Stopped = "stopped",
+}
 
-	constructor(private effect: (timestamp: number) => void) {}
+export class Ticker {
+	private state: TickerState = TickerState.Idle;
+	private tickerId: number | null = null;
+
+	constructor(private _callback: () => void) {}
 
 	start() {
-		this.cancelled = false;
-		this.ticker();
+		if (this.state === TickerState.Running) {
+			return;
+		}
+
+		this.state = TickerState.Running;
+
+		this._scheduler();
 	}
 
-	private ticker = () => {
-		if (this.cancelled) return;
+	stop() {
+		if (this.state === TickerState.Stopped) {
+			return;
+		}
 
-		this.effect(Date.now());
-		this.tickerId = requestAnimationFrame(this.ticker);
-	};
+		this.state = TickerState.Stopped;
 
-	end() {
-		if (this.tickerId) cancelAnimationFrame(this.tickerId);
+		if (this.tickerId) {
+			cancelAnimationFrame(this.tickerId);
+			this.tickerId = null;
+		}
+	}
 
-		this.tickerId = null;
-		this.cancelled = true;
+	private _scheduler() {
+		if (this.state !== TickerState.Running) return;
+
+		try {
+			this.tickerId = requestAnimationFrame(() => {
+				this._callback();
+				this._scheduler();
+			});
+		} catch (error) {
+			this.state = TickerState.Stopped;
+			console.error("Ticker error:", error);
+			throw error;
+		}
 	}
 }

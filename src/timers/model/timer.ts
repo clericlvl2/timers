@@ -35,34 +35,24 @@ const timerPaused = createEvent<ItemId>();
 const timerRemoved = createEvent<ItemId>();
 const timerResumed = createEvent<ItemId>();
 
-sample({
-	clock: timerAdded,
-	source: $timers,
-	fn: (list, item) => {
-		const hh = Number(item.hh);
-		const mm = Number(item.mm);
-		const ss = Number(item.ss);
-		const now = Date.now();
-		const time = new Time(hh, mm, ss);
+const createTimer = ({ hh, mm, ss }: TimerForm) => {
+	const now = Date.now();
+	const time = new Time(Number(hh), Number(mm), Number(ss));
 
-		return [
-			...list,
-			{
-				total: time.total,
-				displayTime: time.raw(),
-				displayTotal: time.pretty(),
-				elapsed: 0,
-				status: TimerStatus.Running,
-				createdAt: now,
-				timestamp: now,
-				id: createUUID(),
-			},
-		];
-	},
-	target: $timers,
-});
+	return {
+		total: time.total,
+		displayTime: time.raw(),
+		displayTotal: time.pretty(),
+		elapsed: 0,
+		status: TimerStatus.Running,
+		createdAt: now,
+		timestamp: now,
+		id: createUUID(),
+	};
+};
 
-const isStatusSettable =
+// todo i dont like it
+const isTimerStatusSettable =
 	(status: TimerStatus) => (list: Timer[], id: ItemId) => {
 		const item = list.find((item) => item.id === id);
 
@@ -71,10 +61,20 @@ const isStatusSettable =
 		);
 	};
 
+const isTimerRunnable = isTimerStatusSettable(TimerStatus.Running);
+const isTimerPausable = isTimerStatusSettable(TimerStatus.Paused);
+
+sample({
+	clock: timerAdded,
+	source: $timers,
+	fn: (list, formData) => [...list, createTimer(formData)],
+	target: $timers,
+});
+
 sample({
 	clock: timerStarted,
 	source: $timers,
-	filter: isStatusSettable(TimerStatus.Running),
+	filter: isTimerRunnable,
 	fn: (list, id) =>
 		updateListById(list, id, {
 			timestamp: Date.now(),
@@ -86,7 +86,7 @@ sample({
 sample({
 	clock: timerPaused,
 	source: $timers,
-	filter: isStatusSettable(TimerStatus.Paused),
+	filter: isTimerPausable,
 	fn: (list, id) =>
 		updateListById(list, id, {
 			status: TimerStatus.Paused,
@@ -115,16 +115,16 @@ sample({
 
 sample({
 	clock: $runningTimersCount,
-	source: tickerModel.isRunning,
+	source: tickerModel.$isRunning,
 	filter: (isRunning, count) => !isRunning && count > 0,
-	target: tickerModel.start,
+	target: tickerModel.started,
 });
 
 sample({
 	clock: $runningTimersCount,
-	source: tickerModel.isRunning,
+	source: tickerModel.$isRunning,
 	filter: (isRunning, count) => isRunning && count === 0,
-	target: tickerModel.end,
+	target: tickerModel.stopped,
 });
 
 sample({
@@ -166,11 +166,30 @@ persist({
 	key: StorageKey.TimersList,
 });
 
+/**
+ * NORMALIZED DATA
+ */
+
+// const $timersMap = createStore<Map<ItemId, Timer>>(new Map());
+// const $timersList = $timersMap.map((map) => map.values());
+//
+// sample({
+//     clock: timerAdded,
+//     source: $timersMap,
+//     fn: (map, formData) => {
+//         const timer = createTimer(formData);
+//         map.set(timer.id, timer);
+//
+//         return map;
+//     },
+//     target: $timersMap,
+// });
+
 export const timersModel = {
-	list: $timers,
-	remove: timerRemoved,
-	resume: timerResumed,
-	add: timerAdded,
-	start: timerStarted,
-	pause: timerPaused,
+	$list: $timers,
+	removed: timerRemoved,
+	resumed: timerResumed,
+	added: timerAdded,
+	started: timerStarted,
+	paused: timerPaused,
 };

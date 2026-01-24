@@ -10,21 +10,23 @@ export interface TimerForm {
 	mm: FormValue;
 	ss: FormValue;
 }
-const formSubmitted = createEvent();
-
-const $form = createStore<TimerForm>({
-	hh: null,
-	mm: null,
-	ss: null,
-});
-const $formError = createStore<string | null>(null);
 
 interface FormChangedPayload {
 	key: "hh" | "mm" | "ss";
 	value: FormValue;
 }
 
+const formSubmitted = createEvent();
 const formChanged = createEvent<FormChangedPayload>();
+
+const $formError = createStore<string | null>(null);
+const $form = createStore<TimerForm>({
+	hh: null,
+	mm: null,
+	ss: null,
+});
+
+const isFormValid = ({ hh, mm, ss }: TimerForm) => Boolean(hh || mm || ss);
 
 sample({
 	clock: formChanged,
@@ -33,13 +35,11 @@ sample({
 	target: $form,
 });
 
-const isFormValid = ({ hh, mm, ss }: TimerForm) => Boolean(hh || mm || ss);
-
 sample({
 	clock: formSubmitted,
 	source: $form,
 	filter: isFormValid,
-	target: timersModel.add,
+	target: timersModel.added,
 });
 
 sample({
@@ -51,13 +51,13 @@ sample({
 });
 
 sample({
-	clock: timersModel.add,
+	clock: timersModel.added,
 	fn: () => null,
 	target: $formError,
 });
 
 sample({
-	clock: timersModel.add,
+	clock: timersModel.added,
 	fn: () => ({ hh: null, mm: null, ss: null }),
 	target: $form,
 });

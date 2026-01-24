@@ -18,7 +18,7 @@ export const useItemActions = ({ id, status }: Pick<Timer, "id" | "status">) =>
 						icon={<CloseCircleOutlined />}
 						size="large"
 						danger
-						onClick={() => timersModel.remove(id)}
+						onClick={() => timersModel.removed(id)}
 					/>
 				),
 			},

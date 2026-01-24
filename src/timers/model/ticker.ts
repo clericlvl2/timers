@@ -2,35 +2,35 @@ import { Ticker } from "@shared";
 import { createEffect, createEvent, createStore, sample } from "effector";
 import { throttle } from "patronum";
 
-const TICK_TIMEOUT = 50;
+const TICK_TIMEOUT_MS = 50;
 
-export const startTick = createEvent();
-export const endTick = createEvent();
 const tick = createEvent<number>();
-const throttledTick = throttle({ source: tick, timeout: TICK_TIMEOUT });
+const throttledTick = throttle({ source: tick, timeout: TICK_TIMEOUT_MS });
+const tickerStarted = createEvent();
+const tickerStopped = createEvent();
 
-const $isTickerRunning = createStore(false);
+const $isRunning = createStore(false);
 
-const ticker = new Ticker(tick);
+const ticker = new Ticker(() => tick(Date.now()));
 
 export const startTickerFx = createEffect(() => ticker.start());
-export const endTickerFx = createEffect(() => ticker.end());
+export const endTickerFx = createEffect(() => ticker.stop());
 
 sample({
-	source: startTick,
+	source: tickerStarted,
 	fn: () => true,
-	target: [startTickerFx, $isTickerRunning],
+	target: [startTickerFx, $isRunning],
 });
 
 sample({
-	source: endTick,
+	source: tickerStopped,
 	fn: () => false,
-	target: [endTickerFx, $isTickerRunning],
+	target: [endTickerFx, $isRunning],
 });
 
 export const tickerModel = {
+	$isRunning,
 	tick: throttledTick,
-	isRunning: $isTickerRunning,
-	start: startTick,
-	end: endTick,
+	started: tickerStarted,
+	stopped: tickerStopped,
 };

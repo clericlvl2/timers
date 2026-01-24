@@ -8,7 +8,7 @@ export const TimerCard = ({ id, displayTime, displayTotal, status }: Timer) => {
 	return (
 		<Card>
 			<div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between sm:items-center">
-				<div>
+				<div className="flex flex-col items-center sm:items-start">
 					<TimeDisplay value={displayTime} />
 					<TotalTimeDisplay value={displayTotal} />
 				</div>

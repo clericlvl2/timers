@@ -10,15 +10,15 @@ import { type Timer, TimerStatus, timersModel } from "../../model/timer";
 const playButtonConfig = {
 	[TimerStatus.Paused]: {
 		iconComponent: PlayCircleOutlined,
-		action: timersModel.start,
+		action: timersModel.started,
 	},
 	[TimerStatus.Running]: {
 		iconComponent: PauseCircleOutlined,
-		action: timersModel.pause,
+		action: timersModel.paused,
 	},
 	[TimerStatus.Completed]: {
 		iconComponent: ReloadOutlined,
-		action: timersModel.resume,
+		action: timersModel.resumed,
 	},
 };
 const usePlayButtonConfig = (status: TimerStatus) => {
