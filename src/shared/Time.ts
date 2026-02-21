@@ -1,6 +1,5 @@
-export const TIME_UNITS = {
+const TIME_UNITS = {
 	SEC_PER_HOUR: 3600,
-	MIN_PER_HOUR: 60,
 	SEC_PER_MIN: 60,
 	MS_PER_SECOND: 1000,
 };
@@ -12,23 +11,26 @@ export class Time {
 	total: number;
 
 	constructor(hours: number, minutes: number, seconds: number);
-	constructor(ms: number);
-	constructor(msOrHours: number, minutes?: number, seconds?: number) {
+	constructor(totalMs: number);
+	constructor(totalMsOrHours: number, minutes?: number, seconds?: number) {
 		if (minutes !== undefined && seconds !== undefined) {
-			this.hours = msOrHours;
+			const hours = totalMsOrHours;
+			this.hours = hours;
 			this.minutes = minutes;
 			this.seconds = seconds;
-			this.total = this.getTotalTimeMs(msOrHours, minutes, seconds);
+			this.total = this.calculateDurationFromTime(hours, minutes, seconds);
 		} else {
-			const { hh, mm, ss } = this.getFromTotalTime(msOrHours);
+			const totalMs = totalMsOrHours;
+			const { hh, mm, ss } = this.calculateTimeFromDuration(totalMs);
 			this.hours = hh;
 			this.minutes = mm;
 			this.seconds = ss;
-			this.total = msOrHours;
+			this.total = totalMs;
 		}
 	}
 
-	private getFromTotalTime(ms: number) {
+	/** подсчитать время: 5000000ms => { hh: 1, mm: 23, ss: 20 } */
+	private calculateTimeFromDuration(ms: number) {
 		const s = Math.ceil(ms / TIME_UNITS.MS_PER_SECOND);
 
 		return {
@@ -38,29 +40,22 @@ export class Time {
 		};
 	}
 
-	private getTotalTimeMs(hours: number, minutes: number, seconds: number) {
+	/** подсчитать длительность: 2m 2s => 122000ms */
+	private calculateDurationFromTime(hh: number, mm: number, ss: number) {
 		return (
-			((hours ?? 0) * TIME_UNITS.SEC_PER_HOUR +
-				(minutes ?? 0) * TIME_UNITS.MIN_PER_HOUR +
-				(seconds ?? 0)) *
+			(hh * TIME_UNITS.SEC_PER_HOUR + mm * TIME_UNITS.SEC_PER_MIN + ss) *
 			TIME_UNITS.MS_PER_SECOND
 		);
 	}
 
-	private format(value: number | null) {
-		return (value ?? 0).toString().padStart(2, "0");
-	}
-
-	/** строгий формат 01:32:10 */
+	/** hh:mm:ss формат 01:32:10 */
 	raw() {
-		return `${this.format(this.hours)}:${this.format(this.minutes)}:${this.format(this.seconds)}`;
+		return [this.hours, this.minutes, this.seconds]
+			.map((v) => v.toString().padStart(2, "0"))
+			.join(":");
 	}
 
-	/** компактный формат:
-	 * 1h 32m 10s
-	 * 25m 1s
-	 * 42s
-	 */
+	/** hms формат: 1h 32m 10s */
 	pretty() {
 		const parts = [
 			this.hours > 0 && `${this.hours}h`,

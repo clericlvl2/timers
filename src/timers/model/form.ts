@@ -1,65 +1,86 @@
-import { createEvent, createStore, sample } from "effector";
+import { combine, createEvent, createStore, sample } from "effector";
 import { persist } from "effector-storage/local";
+import { not, reset } from "patronum";
 import { StorageKey } from "./storage";
 import { timersModel } from "./timer";
 
-type FormValue = number | null;
+type Time = number | null;
 
 export interface TimerForm {
-	hh: FormValue;
-	mm: FormValue;
-	ss: FormValue;
+	label: string | null;
+	hh: Time;
+	mm: Time;
+	ss: Time;
 }
 
-interface FormChangedPayload {
-	key: "hh" | "mm" | "ss";
-	value: FormValue;
-}
+type FormChangedPayload =
+	| { key: "hh" | "mm" | "ss"; value: Time }
+	| { key: "label"; value: string | null };
 
 const formSubmitted = createEvent();
 const formChanged = createEvent<FormChangedPayload>();
+const formReset = createEvent();
 
-const $formError = createStore<string | null>(null);
+const $showErrors = createStore(false);
 const $form = createStore<TimerForm>({
+	label: null,
 	hh: null,
 	mm: null,
 	ss: null,
 });
 
-const isFormValid = ({ hh, mm, ss }: TimerForm) => Boolean(hh || mm || ss);
+const $formErrors = $form.map(({ hh, mm, ss }) => ({
+	label: null,
+	hh: null,
+	mm: null,
+	ss: null,
+	form: !hh && !mm && !ss ? "Timer must be greater than 0" : null,
+}));
+
+const $isFormValid = $formErrors.map((errors) =>
+	Object.values(errors).every((error) => error === null),
+);
+
+const $view = combine({
+	form: $form,
+	errors: $formErrors,
+	showErrors: $showErrors,
+	isValid: $isFormValid,
+});
 
 sample({
 	clock: formChanged,
 	source: $form,
+	filter: (currentForm, { key, value }) => currentForm[key] !== value,
 	fn: (form, { key, value }) => ({ ...form, [key]: value }),
 	target: $form,
 });
 
 sample({
-	clock: formSubmitted,
-	source: $form,
-	filter: isFormValid,
-	target: timersModel.added,
+	clock: formChanged,
+	filter: $isFormValid,
+	fn: () => false,
+	target: $showErrors,
 });
 
 sample({
 	clock: formSubmitted,
 	source: $form,
-	filter: (t) => !isFormValid(t),
-	fn: () => "Fields must not be empty",
-	target: $formError,
+	filter: not($isFormValid),
+	fn: () => true,
+	target: $showErrors,
 });
 
 sample({
-	clock: timersModel.added,
-	fn: () => null,
-	target: $formError,
+	clock: formSubmitted,
+	source: $form,
+	filter: $isFormValid,
+	target: [timersModel.added, formReset],
 });
 
-sample({
-	clock: timersModel.added,
-	fn: () => ({ hh: null, mm: null, ss: null }),
-	target: $form,
+reset({
+	clock: formReset,
+	target: [$form],
 });
 
 persist({
@@ -67,9 +88,4 @@ persist({
 	key: StorageKey.FormData,
 });
 
-export const timerFormModel = {
-	form: $form,
-	formError: $formError,
-	submit: formSubmitted,
-	change: formChanged,
-};
+export { $view, formChanged, formSubmitted };

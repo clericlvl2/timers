@@ -11,5 +11,12 @@
 		"formatter": {
 			"enabled": true
 		}
+	},
+	"linter": {
+		"rules": {
+			"suspicious": {
+				"noThenProperty": "off"
+			}
+		}
 	}
 }

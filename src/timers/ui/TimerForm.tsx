@@ -1,6 +1,6 @@
 import { Button, Card, Form, InputNumber } from "antd";
 import { useUnit } from "effector-react";
-import { timerFormModel } from "../model/form";
+import { $view, formChanged, formSubmitted } from "../model/form";
 
 const fieldsConfig = [
 	{
@@ -24,11 +24,10 @@ const fieldsConfig = [
 ] as const;
 
 export const TimerForm = () => {
-	const [form, error, onSubmit, onChange] = useUnit([
-		timerFormModel.form,
-		timerFormModel.formError,
-		timerFormModel.submit,
-		timerFormModel.change,
+	const [{ form, showErrors }, onSubmit, onChange] = useUnit([
+		$view,
+		formSubmitted,
+		formChanged,
 	]);
 
 	return (
@@ -45,7 +44,7 @@ export const TimerForm = () => {
 						min={f.min}
 						max={f.max}
 						placeholder={f.placeholder}
-						status={error ? "error" : ""}
+						status={showErrors ? "error" : ""}
 						onChange={(value) => onChange({ key: f.key, value })}
 					/>
 				))}
